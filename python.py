@@ -8,8 +8,14 @@ import socket
 import re
 socket.setdefaulttimeout(50)
 
-#处理图片方法
+#进度条
+def cbk(a, b, c):
+    per = 100.0 * a * b / c
+    if(per > 100):
+        per = 100
+    print('%2f%%' % per)
 
+#处理图片方法
 def getImg(url, i, all):
     urla = url
     req = urllib2.Request(urla)
@@ -22,9 +28,16 @@ def getImg(url, i, all):
     x = 0
     for link in imgtag:
         if(link.get('src') and re.match('.*\/\/.*', link.get('src'))):
-            url = 'https:'+link.get('src')
-            print(url+'-----%s' % x)
-            urllib.urlretrieve(link.get('src'), 'img/%s-%s.jpg' % (i,x))
+            try:
+                url = link.get('src')
+                r = urllib2.Request(url)
+                r.add_header('Referer','//www.tuku.cn/')
+                r.add_header('User-Agent','Mozilla/5.0 (Windows NT 6.2; rv:16.0) Gecko/20100101 Firefox/16.0')
+                res = urllib2.urlopen(r, data=None, timeout=3)
+                print(url+'-----%s' % x)
+                urllib.urlretrieve(link.get('src'), 'img/%s-%s.jpg' % (i,x), cbk)
+            except Exception,e:
+                continue
             x+=1
     print('====处理完第%s页了,还剩%s页====' % (i, (all-i)))
 
